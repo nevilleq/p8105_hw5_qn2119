@@ -1,0 +1,58 @@
+---
+title: "P8105 Homework 5"
+author: "Quinton Neville"
+date: "November 6, 2018"
+header-includes: 
+  \usepackage{graphicx}
+  \usepackage{float}
+  \usepackage{amsmath}
+output:
+   github_document
+---
+
+```{r setup, echo = FALSE, warning = FALSE, message = FALSE}
+#Load necessary packages
+library(tidyverse)
+library(readxl)
+library(readr)
+library(p8105.datasets)
+library(patchwork)
+library(ggridges)
+library(gridExtra)
+library(shiny)
+library(plotly)
+library(broom)
+library(scales)
+library(koRpus)
+
+#Controlling figure output in markdown
+knitr::opts_chunk$set(
+#  fig.height =   
+  fig.width = 6,
+#  fig.asp = .5,
+  out.width = "90%",
+#  out.height = 
+ fig.align = "center",
+  cache = FALSE
+)
+
+#Set Theme for ggplot2
+theme_set(theme_bw() + theme(plot.title = element_text(hjust = 0.5), legend.position = "bottom"))
+
+#Set Scientific notation output for knitr
+options(scipen = 999999)
+
+```
+
+#Problem 1
+
+```{r problem_1, warning = FALSE, message = FALSE}
+
+
+```
+
+
+
+
+
+#Problem 2
