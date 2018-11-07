@@ -56,15 +56,40 @@ read.p1.data <- function(data.csv.path){
   mutate(
     week = week %>% substring(., 6) %>% as.numeric(),
     id = data.csv.path %>% rep(., length = length(week)) %>% extract_numeric(),
-    group = data.csv.path %>% rep(., length = length(week)) %>% stringr::str_extract(., "[a-z][a-z][a-z]")
+    group = data.csv.path %>% rep(., length = length(week)) %>% stringr::str_extract(., "[ce][ox][np]")
   ) %>%
   select(id, week, group, everything())
 }
 
 p1.df <- purrr::map_df(data.csv.path, read.p1.data) %>%
-  mutate(group = group %>% as.factor() %>% forcats::fct_recode(., "Control" = "con", "Experimental" = "exp"))
+  mutate(group = group %>% as.factor() %>% forcats::fct_recode(., "Control" = "con", "Treatment" = "exp"),
+         id = ifelse(group == "Control", paste0(id, "C"), paste0(id, "T")) %>% as.factor() %>% forcats::fct_reorder2(., week, observation, .desc = FALSE)
+  )
 
 str(p1.df)
+
+#Spaghetti Plot of Each particpant's observed value over time
+
+p1.spaghetti <- p1.df %>%
+  ggplot(aes(x = week, y = observation, colour = id)) +
+  geom_line(aes(linetype = group), alpha = 0.8, size = 1) +
+  geom_smooth(aes(linetype = group), alpha = 1, method = "lm", se = FALSE, colour = "black", size = 1.5) +
+     labs(
+    x = "Week",
+    y = "Observed Value",
+    title = "Participant Observed Values in Time"
+   ) +
+   viridis::scale_colour_viridis(
+    option = "magma",
+    name = "Participant ID", 
+    discrete = TRUE,
+    guide = guide_legend(ncol = 3)
+   ) +
+  theme(legend.position = "right") +
+  scale_linetype_discrete(name = "Group") 
+
+p1.spaghetti
+
 ```
 
 
