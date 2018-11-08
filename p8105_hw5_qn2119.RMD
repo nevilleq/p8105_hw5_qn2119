@@ -47,7 +47,10 @@ options(scipen = 999999)
 
 #Problem 1
 
+These problems concerns a set of data files taken from a study with a control and treatment arm. Each data frame describes participant level observations over time, in each group. We will iteratively read in the data frame, clean and tidy the resulting data from all participants, and produce a spaghetti plot of each participant, highlighting overarching group trends, over the 8-week follow-up period.
+
 ```{r problem_1, warning = FALSE, message = FALSE}
+#Pull the .csv filenames for each df
 data.csv.path <- list.files(path = "./data", pattern = "[ce][ox][np][_]+") 
 
 read.p1.data <- function(data.csv.path){
@@ -61,12 +64,24 @@ read.p1.data <- function(data.csv.path){
   select(id, week, group, everything())
 }
 
-p1.df <- purrr::map_df(data.csv.path, read.p1.data) %>%
+p1.df1 <- purrr::map_df(data.csv.path, read.p1.data) %>%
   mutate(group = group %>% as.factor() %>% forcats::fct_recode(., "Control" = "con", "Treatment" = "exp"),
          id = ifelse(group == "Control", paste0(id, "C"), paste0(id, "T")) %>% as.factor() %>% forcats::fct_reorder2(., week, observation, .desc = FALSE)
   )
 
-#str(p1.df)
+p1.df <- list.files(path = "./data", pattern = "[ce][ox][np][_]+") %>% as.tibble() %>%
+  rename(data_csv_path = value) %>%
+  mutate(input_files = map(.x = data_csv_path, ~read_csv(paste0("./data/", .x)))) %>% 
+  unnest() %>%
+  gather(key = week, value = observation, week_1:week_8) %>%
+  mutate(
+    week = week %>% substring(., 6) %>% as.numeric(),
+    group = data_csv_path %>% str_extract(., "[ce][ox][np]") %>% as.factor() %>%
+      forcats::fct_recode(., "Control" = "con", "Treatment" = "exp"),
+    id = data_csv_path %>% parse_number() %>% as.factor() %>% 
+      forcats::fct_reorder2(., week, observation, .desc = FALSE)
+  ) %>%
+  select(id, week, group, observation, -data_csv_path)
 
 #Spaghetti Plot of Each particpant's observed value over time
 
@@ -89,14 +104,15 @@ p1.spaghetti <- p1.df %>%
   scale_linetype_discrete(name = "Group") 
 
 p1.spaghetti
-
 ```
 
-
+Concerning the spaghetti plot above, the overarching linear model fit lines by group (in black) elicit that the treatment group's observations exhibiting a significant mean increase in expected observation values over time, while the control goup's observed values began and maintained a lower average value, with a slight decrease in time. Additionally, both group's observed values began at a relatively low position (near zero), there do exist two participants with the highest observed values at week zero, and over time. Lastly, the linear fit trends imply that the treatment group experienced a marked increase in observed value over time, compared to the control, and the control group exhibited a static, lower, and less variable observed value trend in time, compared to the treatment group.
 
 
 
 #Problem 2
+
+These
 ```{r problem_2, warning = FALSE, error = FALSE, message = FALSE}
 #Read in the wp homicide data
 wp.homicide.df <- read_csv("./data/wp_homicide_data.csv")
@@ -143,7 +159,7 @@ city.prop.bar <- city.prop.df %>%
   mutate(city_state = city_state %>% as.factor() %>% forcats::fct_reorder(., estimate, .desc = FALSE)) %>%
   ggplot(aes(x = city_state, y = estimate, fill = estimate)) +
   geom_bar(stat = "identity", colour = "black", width = 1, alpha = 0.9) +
-  geom_errorbar(aes(x = city_state, ymin = conf.low, ymax = conf.high), size = .9, alpha = 0.9) +
+  geom_errorbar(aes(x = city_state, ymin = conf.low, ymax = conf.high), colour = "red", size = .9, alpha = 0.5) +
   coord_flip() +
   viridis::scale_fill_viridis(
     option = "magma",
@@ -152,14 +168,14 @@ city.prop.bar <- city.prop.df %>%
   ) +
   labs(
     x = "City",
-    y = "Proportion of Unsolved Homicides",
+    y = "Proportion Unsolved Homicides",
     title = "Proportion of Unsolved Homicides by City"
   ) +
     theme(legend.position = "bottom",
         axis.text.y = element_text(color = "black", 
-        size = 10,  hjust = 1) ) 
+        size = 10,  hjust = 1) ) +
+  scale_y_continuous(breaks = seq(0, 0.8, 0.1), sec.axis = dup_axis())
   
-
 city.prop.bar
 ```
 
